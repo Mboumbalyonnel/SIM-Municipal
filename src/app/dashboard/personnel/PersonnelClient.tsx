@@ -51,7 +51,9 @@ export default function PersonnelClient({ agents: initA, conges: initC, role, ma
   const [err, setErr] = useState('')
 
   const canWrite = role === 'admin' || role === 'senior'
-  const servicesUniq = [...new Set(agents.map((a) => a.service))].sort()
+
+  // Fix compatibilite ES target
+  const servicesUniq = Array.from(new Set(agents.map((a) => a.service))).sort()
 
   const filtered = agents.filter((a) => {
     const s = search.toLowerCase()
@@ -229,14 +231,12 @@ export default function PersonnelClient({ agents: initA, conges: initC, role, ma
     await sb.from('conges').update({ statut }).eq('id', id)
 
     if (statut === 'approuve') {
-      // Agent part en conge
       await sb.from('agents').update({ statut: 'conge' }).eq('id', conge.agent_id)
       setAgents((p) => p.map((a) =>
         a.id === conge.agent_id ? { ...a, statut: 'conge' as Agent['statut'] } : a
       ))
       setConges((p) => p.map((c) => c.id === id ? { ...c, statut: statut as Conge['statut'] } : c))
     } else if (statut === 'refuse' || statut === 'annule') {
-      // Agent repasse actif si il etait en conge
       const agent = agents.find((a) => a.id === conge.agent_id)
       if (agent && agent.statut === 'conge') {
         await sb.from('agents').update({ statut: 'actif' }).eq('id', conge.agent_id)
@@ -254,10 +254,8 @@ export default function PersonnelClient({ agents: initA, conges: initC, role, ma
     const conge = conges.find((c) => c.id === id)
     if (!conge) return
 
-    // Soft delete
     await sb.from('conges').update({ deleted_at: new Date().toISOString() }).eq('id', id)
 
-    // Si conge etait approuve, repasser l'agent a actif
     if (conge.statut === 'approuve') {
       await sb.from('agents').update({ statut: 'actif' }).eq('id', conge.agent_id)
       setAgents((p) => p.map((a) =>
@@ -265,7 +263,6 @@ export default function PersonnelClient({ agents: initA, conges: initC, role, ma
       ))
     }
 
-    // Supprimer de la liste locale — compteur decremente automatiquement
     setConges((p) => p.filter((c) => c.id !== id))
   }
 
@@ -462,14 +459,12 @@ export default function PersonnelClient({ agents: initA, conges: initC, role, ma
                       {canWrite && (
                         <Button variant="ghost" size="sm" onClick={() => openEditConge(c)}>Modifier</Button>
                       )}
-                      {/* Fin de conge : uniquement si approuve */}
                       {canWrite && c.statut === 'approuve' && (
                         <Button variant="ghost" size="sm" style={{ color: 'var(--success)' }}
                           onClick={() => cloturerConge(c.id)}>
                           Fin de conge
                         </Button>
                       )}
-                      {/* Supprimer : uniquement si refuse ou annule */}
                       {canWrite && (c.statut === 'refuse' || c.statut === 'annule') && (
                         <Button variant="ghost" size="sm" style={{ color: 'var(--danger)' }}
                           onClick={() => supprimerConge(c.id)}>
