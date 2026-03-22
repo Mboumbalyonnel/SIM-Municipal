@@ -35,7 +35,7 @@ export default function HabitantsClient({ habitants: init, role, mairieId }: {
   const canWrite = ['admin', 'senior', 'saisie'].includes(role)
   const canEdit  = role === 'admin' || role === 'senior'
 
-  const quartiersUniq = [...new Set(habitants.map((h) => h.quartier).filter(Boolean))] as string[]
+  const quartiersUniq = Array.from(new Set(habitants.map((h) => h.quartier).filter(Boolean))) as string[]
 
   const filtered = habitants.filter((h) => {
     const s = search.toLowerCase()
@@ -138,8 +138,8 @@ export default function HabitantsClient({ habitants: init, role, mairieId }: {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
         <StatCard label="Habitants enregistres" value={habitants.length} />
-        <StatCard label="Quartiers couverts" value={quartiersUniq.length} />
-        <StatCard label="Resultat filtre" value={filtered.length} />
+        <StatCard label="Quartiers couverts"    value={quartiersUniq.length} />
+        <StatCard label="Resultat filtre"        value={filtered.length} />
       </div>
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
