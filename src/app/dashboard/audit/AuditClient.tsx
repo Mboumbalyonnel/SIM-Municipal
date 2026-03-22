@@ -5,10 +5,10 @@ import { formatDate } from '@/lib/utils'
 import type { AuditLog } from '@/types'
 
 const ACTION_CONFIG: Record<string, { label: string; bg: string; color: string }> = {
-  CREATION:     { label: 'Ajout',         bg: '#E8F5EE', color: '#1A6B3C' },
-  MODIFICATION: { label: 'Modification',  bg: '#E8F0F9', color: '#1A3A5C' },
-  DESACTIVATION:{ label: 'Desactivation', bg: '#FDECEA', color: '#C0392B' },
-  SUPPRESSION:  { label: 'Suppression',   bg: '#FDECEA', color: '#C0392B' },
+  CREATION:      { label: 'Ajout',         bg: '#E8F5EE', color: '#1A6B3C' },
+  MODIFICATION:  { label: 'Modification',  bg: '#E8F0F9', color: '#1A3A5C' },
+  DESACTIVATION: { label: 'Desactivation', bg: '#FDECEA', color: '#C0392B' },
+  SUPPRESSION:   { label: 'Suppression',   bg: '#FDECEA', color: '#C0392B' },
 }
 
 const TABLE_LABELS: Record<string, string> = {
@@ -27,7 +27,7 @@ const TABLE_LABELS: Record<string, string> = {
 
 function getDescription(log: AuditLog): string {
   const table = TABLE_LABELS[log.table_cible] ?? log.table_cible
-  const after = log.valeur_apres as Record<string, string> | null
+  const after  = log.valeur_apres as Record<string, string> | null
   const before = log.valeur_avant as Record<string, string> | null
 
   if (log.action === 'CREATION') {
@@ -63,20 +63,19 @@ export default function AuditClient({ logs }: { logs: AuditLog[] }) {
       getDescription(l).toLowerCase().includes(s)
     return match &&
       (!filterAction || l.action === filterAction) &&
-      (!filterTable || l.table_cible === filterTable)
+      (!filterTable  || l.table_cible === filterTable)
   })
 
-  const tables = [...new Set(logs.map((l) => l.table_cible))].sort()
+  // Fix compatibilite ES target — Array.from au lieu du spread sur Set
+  const tables = Array.from(new Set(logs.map((l) => l.table_cible))).sort()
 
-  // Stats rapides
-  const nbCreations     = logs.filter((l) => l.action === 'CREATION').length
-  const nbModifications = logs.filter((l) => l.action === 'MODIFICATION').length
+  const nbCreations      = logs.filter((l) => l.action === 'CREATION').length
+  const nbModifications  = logs.filter((l) => l.action === 'MODIFICATION').length
   const nbDesactivations = logs.filter((l) => l.action === 'DESACTIVATION' || l.action === 'SUPPRESSION').length
-  const nbUtilisateurs  = new Set(logs.map((l) => l.utilisateur_id)).size
+  const nbUtilisateurs   = Array.from(new Set(logs.map((l) => l.utilisateur_id))).length
 
   return (
     <div>
-      {/* Header */}
       <div style={{ marginBottom: '28px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>
           Journal d&apos;activite
@@ -86,7 +85,6 @@ export default function AuditClient({ logs }: { logs: AuditLog[] }) {
         </p>
       </div>
 
-      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
         {[
           { label: 'Ajouts',         value: nbCreations,      color: 'var(--success)' },
@@ -109,7 +107,6 @@ export default function AuditClient({ logs }: { logs: AuditLog[] }) {
         ))}
       </div>
 
-      {/* Filtres */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           type="text"
@@ -143,7 +140,6 @@ export default function AuditClient({ logs }: { logs: AuditLog[] }) {
         </span>
       </div>
 
-      {/* Liste */}
       <div style={{
         background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)', overflow: 'hidden',
@@ -167,7 +163,6 @@ export default function AuditClient({ logs }: { logs: AuditLog[] }) {
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface2)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
               >
-                {/* Badge action */}
                 <div style={{
                   flexShrink: 0, width: '90px', textAlign: 'center',
                   padding: '3px 0', borderRadius: 'var(--radius-sm)',
@@ -177,7 +172,6 @@ export default function AuditClient({ logs }: { logs: AuditLog[] }) {
                   {config.label.toUpperCase()}
                 </div>
 
-                {/* Avatar initiales */}
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
                   background: 'var(--accent-light)',
@@ -187,7 +181,6 @@ export default function AuditClient({ logs }: { logs: AuditLog[] }) {
                   {l.utilisateur_nom.split(' ').map((n) => n.charAt(0)).slice(0, 2).join('').toUpperCase()}
                 </div>
 
-                {/* Description */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>
                     {l.utilisateur_nom}
@@ -197,7 +190,6 @@ export default function AuditClient({ logs }: { logs: AuditLog[] }) {
                   </div>
                 </div>
 
-                {/* Module */}
                 <div style={{
                   flexShrink: 0, fontSize: '11px', fontWeight: 600,
                   color: 'var(--text3)', background: 'var(--surface2)',
@@ -207,7 +199,6 @@ export default function AuditClient({ logs }: { logs: AuditLog[] }) {
                   {module}
                 </div>
 
-                {/* Date */}
                 <div style={{
                   flexShrink: 0, fontSize: '11px', fontWeight: 500,
                   color: 'var(--text4)', textAlign: 'right', minWidth: '110px',
